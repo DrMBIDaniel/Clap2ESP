@@ -14,6 +14,8 @@ class AudioService : Service() {
     private var audioRecord: AudioRecord? = null
     private var isRecording = false
 
+    private val clapDetector = ClapDetector()
+
     private val channelId = "Clap2ESP_Channel"
 
 
@@ -88,15 +90,19 @@ class AudioService : Service() {
                 )
 
 
-                if (read != null && read > 0) {
+              if (read != null && read > 0) {
 
-                    val volume = buffer.maxOrNull()
 
-                    Log.d(
-                        "CLAP",
-                        "Volume: $volume"
-                    )
-                }
+    if (clapDetector.detect(buffer)) {
+
+        Log.d(
+            "CLAP",
+            "CLAP DETECTED!"
+        )
+
+    }
+
+}
             }
 
         }.start()
