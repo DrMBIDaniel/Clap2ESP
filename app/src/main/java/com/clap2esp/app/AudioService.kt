@@ -121,7 +121,16 @@ class AudioService : Service() {
             manager.createNotificationChannel(channel)
         }
     }
+    
+    fun stopListening() {
 
+    isRecording = false
+
+    audioRecord?.stop()
+    audioRecord?.release()
+
+    audioRecord = null
+}
 
     override fun onDestroy() {
 
