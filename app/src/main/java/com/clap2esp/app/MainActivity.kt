@@ -1,13 +1,14 @@
 package com.clap2esp.app
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import android.content.Intent
-import android.widget.Button
+import androidx.core.content.ContextCompat.startForegroundService
 
 class MainActivity : AppCompatActivity() {
 
@@ -17,24 +18,36 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.activity_main)
-        val startButton = findViewById<Button>(R.id.startButton)
 
-startButton.setOnClickListener {
-
-    val serviceIntent = Intent(
-        this,
-        AudioService::class.java
-    )
-
-    startService(serviceIntent)
-}
 
         checkMicrophonePermission()
+
+
+        val startButton = findViewById<Button>(
+            R.id.startButton
+        )
+
+
+        startButton.setOnClickListener {
+
+            val serviceIntent = Intent(
+                this,
+                AudioService::class.java
+            )
+
+
+            startForegroundService(
+                this,
+                serviceIntent
+            )
+        }
     }
+
 
     private fun checkMicrophonePermission() {
 
-        if (ContextCompat.checkSelfPermission(
+        if (
+            ContextCompat.checkSelfPermission(
                 this,
                 Manifest.permission.RECORD_AUDIO
             ) != PackageManager.PERMISSION_GRANTED
@@ -42,7 +55,9 @@ startButton.setOnClickListener {
 
             ActivityCompat.requestPermissions(
                 this,
-                arrayOf(Manifest.permission.RECORD_AUDIO),
+                arrayOf(
+                    Manifest.permission.RECORD_AUDIO
+                ),
                 microphonePermissionCode
             )
         }
