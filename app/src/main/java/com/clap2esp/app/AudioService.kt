@@ -44,7 +44,7 @@ class AudioService : Service() {
 
         startListening()
 
-        return START_STICKY
+        return START_NOT_STICKY
     }
 
 
