@@ -9,15 +9,33 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.startForegroundService
+import android.content.BroadcastReceiver
+import android.content.IntentFilter
+import android.content.Context
+import android.widget.TextView
 
 class MainActivity : AppCompatActivity() {
 
     private val microphonePermissionCode = 100
 
+    private val clapReceiver = object : BroadcastReceiver() {
+
+    override fun onReceive(
+        context: Context?,
+        intent: Intent?
+    ) {
+
+        statusText.text = "Status: CLAP DETECTED!"
+
+    }
+}
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.activity_main)
+       
+        statusText = findViewById(R.id.statusText)
 
 
         checkMicrophonePermission()
@@ -52,11 +70,18 @@ class MainActivity : AppCompatActivity() {
 
 
             stopService(serviceIntent)
+
+            registerReceiver(
+    clapReceiver,
+    IntentFilter("CLAP_EVENT")
+)
         }
     }
 
 
-    private fun checkMicrophonePermission() {
+    private fun checkMicrophonePermission()
+    private lateinit var statusText: TextView
+    {
 
         if (
             ContextCompat.checkSelfPermission(
