@@ -1,6 +1,9 @@
 package com.clap2esp.app
 
-import android.app.*
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.Service
 import android.content.Intent
 import android.media.AudioFormat
 import android.media.AudioRecord
@@ -9,20 +12,28 @@ import android.os.Build
 import android.os.IBinder
 import android.util.Log
 
+
 class AudioService : Service() {
 
+
     private var audioRecord: AudioRecord? = null
+
     private var isRecording = false
+
 
     private val clapDetector = ClapDetector()
 
+
     private val channelId = "Clap2ESP_Channel"
+
 
 
     override fun onCreate() {
         super.onCreate()
 
+
         createNotificationChannel()
+
 
         val notification = Notification.Builder(
             this,
@@ -34,8 +45,13 @@ class AudioService : Service() {
             .build()
 
 
-        startForeground(1, notification)
+        startForeground(
+            1,
+            notification
+        )
     }
+
+
 
 
     override fun onStartCommand(
@@ -44,23 +60,32 @@ class AudioService : Service() {
         startId: Int
     ): Int {
 
+
         startListening()
+
 
         return START_NOT_STICKY
     }
 
 
+
+
+
     private fun startListening() {
-        
+
+
         if (isRecording) {
-    return
-}
+            return
+        }
+
+
 
         val bufferSize = AudioRecord.getMinBufferSize(
             44100,
             AudioFormat.CHANNEL_IN_MONO,
             AudioFormat.ENCODING_PCM_16BIT
         )
+
 
 
         audioRecord = AudioRecord(
@@ -72,16 +97,23 @@ class AudioService : Service() {
         )
 
 
+
         audioRecord?.startRecording()
+
 
         isRecording = true
 
 
+
         Thread {
+
 
             val buffer = ShortArray(bufferSize)
 
+
+
             while (isRecording) {
+
 
                 val read = audioRecord?.read(
                     buffer,
@@ -90,32 +122,46 @@ class AudioService : Service() {
                 )
 
 
-              if (read != null && read > 0) {
+
+                if (read != null && read > 0) {
 
 
-    if (clapDetector.detect(buffer)) {
-
-        Log.d(
-    "CLAP",
-    "CLAP DETECTED!"
-)
+                    if (clapDetector.detect(buffer)) {
 
 
-val intent = Intent("CLAP_EVENT")
-sendBroadcast(intent)
+                        Log.d(
+                            "CLAP",
+                            "CLAP DETECTED!"
+                        )
 
-    }
 
-}
+                        val intent = Intent(
+                            "CLAP_EVENT"
+                        )
+
+
+                        sendBroadcast(intent)
+
+                    }
+
+                }
+
             }
 
+
         }.start()
+
     }
+
+
+
 
 
     private fun createNotificationChannel() {
 
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+
 
             val channel = NotificationChannel(
                 channelId,
@@ -125,37 +171,62 @@ sendBroadcast(intent)
 
 
             val manager =
-                getSystemService(NotificationManager::class.java)
+                getSystemService(
+                    NotificationManager::class.java
+                )
 
 
             manager.createNotificationChannel(channel)
+
         }
+
     }
-    
-    fun stopListening() {
 
-    isRecording = false
 
-    audioRecord?.stop()
-    audioRecord?.release()
 
-    audioRecord = null
-}
+
 
     override fun onDestroy() {
 
+
         isRecording = false
 
-        audioRecord?.stop()
+
+
+        try {
+
+            audioRecord?.stop()
+
+        } catch (e: Exception) {
+
+            Log.e(
+                "CLAP",
+                "Audio stop error"
+            )
+
+        }
+
+
+
         audioRecord?.release()
+
 
         audioRecord = null
 
+
+
         super.onDestroy()
+
     }
+
+
+
 
 
     override fun onBind(intent: Intent?): IBinder? {
+
         return null
+
     }
+
 }
