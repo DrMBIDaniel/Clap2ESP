@@ -1,34 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="24dp">
+    android:layout_height="match_parent">
 
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Clap2ESP"
-        android:textSize="28sp"/>
+    <LinearLayout
 
-
-    <TextView
-        android:id="@+id/statusText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Status: stopped"
-        android:textSize="18sp"
-        android:layout_marginTop="30dp"/>
-
-
-    <Button
-        android:id="@+id/startButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Start listening"
-        android:layout_marginTop="30dp"/>
+
+        android:orientation="vertical"
+
+        android:padding="24dp">
 
 
-</LinearLayout>
+        <TextView
+
+            android:layout_width="match_parent"
+
+            android:layout_height="wrap_content"
+
+            android:text="Clap2ESP"
+
+            android:textSize="32sp"
+
+            android:gravity="center"/>
+
+
+        <TextView
+
+            android:id="@+id/statusText"
+
+            android:layout_width="match_parent"
+
+            android:layout_height="wrap_content"
+
+            android:text="Status: Ready"
+
+            android:textSize="18sp"
+
+            android:layout_marginTop="40dp"/>
+
+
+        <Button
+
+            android:id="@+id/startButton"
+
+            android:layout_width="match_parent"
+
+            android:layout_height="wrap_content"
+
+            android:text="Start listening"
+
+            android:layout_marginTop="30dp"/>
+
+
+    </LinearLayout>
+
+</ScrollView>
