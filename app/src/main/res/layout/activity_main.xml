@@ -49,6 +49,17 @@
         android:text="Start listening"
 
         android:layout_marginTop="40dp"/>
+  
+    <Button
+        android:id="@+id/stopButton"
+    
+        android:layout_width="match_parent"
+    
+        android:layout_height="wrap_content"
+    
+        android:text="Stop Listening"
+    
+        android:layout_marginTop="20dp"/>
 
 
 </LinearLayout>
