@@ -96,9 +96,13 @@ class AudioService : Service() {
     if (clapDetector.detect(buffer)) {
 
         Log.d(
-            "CLAP",
-            "CLAP DETECTED!"
-        )
+    "CLAP",
+    "CLAP DETECTED!"
+)
+
+
+val intent = Intent("CLAP_EVENT")
+sendBroadcast(intent)
 
     }
 
