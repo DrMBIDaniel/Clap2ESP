@@ -23,9 +23,9 @@ class MainActivity : AppCompatActivity() {
         checkMicrophonePermission()
 
 
-        val startButton = findViewById<Button>(
-            R.id.startButton
-        )
+        val startButton = findViewById<Button>(R.id.startButton)
+
+        val stopButton = findViewById<Button>(R.id.stopButton)
 
 
         startButton.setOnClickListener {
@@ -40,6 +40,18 @@ class MainActivity : AppCompatActivity() {
                 this,
                 serviceIntent
             )
+        }
+
+
+        stopButton.setOnClickListener {
+
+            val serviceIntent = Intent(
+                this,
+                AudioService::class.java
+            )
+
+
+            stopService(serviceIntent)
         }
     }
 
