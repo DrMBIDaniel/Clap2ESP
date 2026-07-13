@@ -30,6 +30,8 @@ class AudioService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+       
+        Logger.log("AudioService created")
 
 
         createNotificationChannel()
@@ -45,10 +47,10 @@ class AudioService : Service() {
             .build()
 
 
-        startForeground(
-            1,
-            notification
-        )
+        startForeground(1,notification)
+
+        Logger.log("Foreground service started")
+        
     }
 
 
@@ -60,6 +62,7 @@ class AudioService : Service() {
         startId: Int
     ): Int {
 
+        Logger.log("Starting microphone")
 
         startListening()
 
@@ -100,6 +103,7 @@ class AudioService : Service() {
 
         audioRecord?.startRecording()
 
+        Logger.log("Microphone recording started")
 
         isRecording = true
 
@@ -188,6 +192,7 @@ class AudioService : Service() {
 
     override fun onDestroy() {
 
+        Logger.log("AudioService stopped")
 
         isRecording = false
 
