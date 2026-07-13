@@ -15,6 +15,10 @@ class ClapDetector {
     private val cooldown = 500L
 
 
+    // Чтобы не писать в лог один и тот же шум постоянно
+    private var lastLoggedAmplitude = 0
+
+
     fun detect(buffer: ShortArray): Boolean {
 
 
@@ -31,6 +35,18 @@ class ClapDetector {
         }
 
 
+        // Показываем только заметные изменения громкости
+        if (maxAmplitude > threshold / 2 &&
+            maxAmplitude != lastLoggedAmplitude) {
+
+            Logger.log(
+                "Sound peak: $maxAmplitude"
+            )
+
+            lastLoggedAmplitude = maxAmplitude
+        }
+
+
         val currentTime = System.currentTimeMillis()
 
 
@@ -40,6 +56,12 @@ class ClapDetector {
         ) {
 
             lastClapTime = currentTime
+
+
+            Logger.log(
+                "CLAP DETECTED"
+            )
+
 
             return true
         }
