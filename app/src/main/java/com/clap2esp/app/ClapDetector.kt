@@ -17,21 +17,19 @@ class ClapDetector {
     private val threshold = 12000
 
 
-    // Минимальный промежуток между двумя хлопками
-    private val minDoubleDelay = 120L
+    private val doubleClapInterval = 800L
 
 
-    // Максимальный промежуток между двумя хлопками
-    private val maxDoubleDelay = 800L
-
-
-    private var lastDetectionTime = 0L
-
-
-    private var waitingForSecondClap = false
+    private val minClapInterval = 150L
 
 
     private var firstClapTime = 0L
+
+
+    private var waitingSecondClap = false
+
+
+    private var lastDetectionTime = 0L
 
 
 
@@ -41,31 +39,44 @@ class ClapDetector {
         var maxAmplitude = 0
 
 
+
         for (sample in buffer) {
 
-            val amplitude = abs(sample.toInt())
+
+            val amplitude =
+                abs(sample.toInt())
 
 
             if (amplitude > maxAmplitude) {
+
                 maxAmplitude = amplitude
+
             }
 
         }
 
 
 
-        val currentTime = System.currentTimeMillis()
+        val currentTime =
+            System.currentTimeMillis()
 
 
 
         if (maxAmplitude < threshold) {
+
             return ClapType.NONE
+
         }
 
 
 
-        if (currentTime - lastDetectionTime < 250L) {
+        if (
+            currentTime - lastDetectionTime
+            < minClapInterval
+        ) {
+
             return ClapType.NONE
+
         }
 
 
@@ -74,23 +85,22 @@ class ClapDetector {
 
 
 
-        /*
-        Первый хлопок.
-        Запоминаем и ждём второй.
-        */
-
-        if (!waitingForSecondClap) {
 
 
-            waitingForSecondClap = true
+        if (!waitingSecondClap) {
+
+
+            waitingSecondClap = true
 
 
             firstClapTime = currentTime
 
 
+
             Logger.log(
-                "First clap detected amplitude=$maxAmplitude"
+                "First clap amplitude=$maxAmplitude"
             )
+
 
 
             return ClapType.NONE
@@ -100,40 +110,30 @@ class ClapDetector {
 
 
 
-        /*
-        Второй хлопок.
-        Проверяем интервал.
-        */
 
-
-        val delay = currentTime - firstClapTime
+        val delay =
+            currentTime - firstClapTime
 
 
 
-        if (
-            delay >= minDoubleDelay &&
-            delay <= maxDoubleDelay
-        ) {
+
+        if (delay <= doubleClapInterval) {
 
 
-            waitingForSecondClap = false
+            waitingSecondClap = false
+
 
 
             Logger.log(
-                "DOUBLE CLAP delay=${delay}ms"
+                "Double clap delay=${delay}ms"
             )
+
 
 
             return ClapType.DOUBLE_CLAP
 
         }
 
-
-
-        /*
-        Слишком поздний второй хлопок.
-        Новый хлопок становится первым.
-        */
 
 
         firstClapTime = currentTime
@@ -151,16 +151,18 @@ class ClapDetector {
 
 
         if (
-            waitingForSecondClap &&
-            System.currentTimeMillis() - firstClapTime > maxDoubleDelay
+            waitingSecondClap &&
+            System.currentTimeMillis()
+            - firstClapTime > doubleClapInterval
         ) {
 
 
-            waitingForSecondClap = false
+            waitingSecondClap = false
+
 
 
             Logger.log(
-                "SINGLE CLAP"
+                "Single clap detected"
             )
 
 
