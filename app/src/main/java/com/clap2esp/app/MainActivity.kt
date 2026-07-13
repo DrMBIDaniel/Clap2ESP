@@ -42,6 +42,9 @@ class MainActivity : AppCompatActivity() {
                 this,
                 serviceIntent
             )
+            
+            Logger.log("Start button pressed")
+            
         }
 
         stopButton.setOnClickListener {
@@ -52,7 +55,10 @@ class MainActivity : AppCompatActivity() {
             )
 
             stopService(serviceIntent)
+
+            Logger.log("Stop button pressed")
         }
+        
     }
 
     private fun checkMicrophonePermission() {
@@ -62,7 +68,13 @@ class MainActivity : AppCompatActivity() {
                 this,
                 Manifest.permission.RECORD_AUDIO
             ) != PackageManager.PERMISSION_GRANTED
-        ) {
+        )
+        
+        Logger.log("Microphone permission granted")
+
+        Logger.log("Requesting microphone permission")
+        
+        {
 
             ActivityCompat.requestPermissions(
                 this,
