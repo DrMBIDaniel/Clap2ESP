@@ -127,7 +127,7 @@ class AudioService : Service() {
 
         val bufferSize =
             AudioRecord.getMinBufferSize(
-                44100,
+                16000,
                 AudioFormat.CHANNEL_IN_MONO,
                 AudioFormat.ENCODING_PCM_16BIT
             )
@@ -139,7 +139,7 @@ class AudioService : Service() {
         audioRecord =
             AudioRecord(
                 MediaRecorder.AudioSource.MIC,
-                44100,
+                16000,
                 AudioFormat.CHANNEL_IN_MONO,
                 AudioFormat.ENCODING_PCM_16BIT,
                 bufferSize
