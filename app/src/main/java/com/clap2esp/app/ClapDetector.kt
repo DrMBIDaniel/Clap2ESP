@@ -4,13 +4,17 @@ package com.clap2esp.app
 class ClapDetector {
 
 
+    private var waitingForSecondClap = false
+
+
     private var firstClapTime = 0L
 
 
-    private val doubleClapWindow = 450L
+
+    // Максимальное время между двумя хлопками
+    private val doubleWindow = 500L
 
 
-    private var waitingForSecond = false
 
 
 
@@ -19,7 +23,10 @@ class ClapDetector {
     ): ClapType {
 
 
+
         val now = System.currentTimeMillis()
+
+
 
 
 
@@ -28,15 +35,19 @@ class ClapDetector {
 
         Голос обычно:
         - больше длительность
-        - меньше атака
-        - меньше высокочастотной энергии
+        - медленнее атака
+        - меньше импульсность
         */
 
 
         if (
-            features.highFrequencyRatio < 0.35 &&
-            features.attackTime > 80
+
+            features.attack > 120 ||
+
+            features.impulseWidth > 350
+
         ) {
+
 
             return ClapType.NONE
 
@@ -47,27 +58,35 @@ class ClapDetector {
 
 
         /*
-        Главный фильтр хлопка
+        Основной фильтр хлопка
+
 
         Хлопок:
-        - резкая атака
+        - высокий пик
+        - быстрый фронт
+        - много переходов через ноль
         - короткий импульс
-        - высокая частота
+
         */
 
 
-        val isClap =
-
-            features.amplitude > 9000 &&
-            features.attackTime < 60 &&
-            features.duration < 250 &&
-            features.highFrequencyRatio > 0.45
+        val clapCandidate =
 
 
+            features.peak > 8000 &&
+
+            features.attack < 100 &&
+
+            features.impulseWidth < 250 &&
+
+            features.zeroCrossings > 20
 
 
 
-        if (!isClap) {
+
+
+        if (!clapCandidate) {
+
 
             return ClapType.NONE
 
@@ -82,24 +101,25 @@ class ClapDetector {
         */
 
 
-        if (!waitingForSecond) {
+        if (!waitingForSecondClap) {
 
 
-            waitingForSecond = true
+            waitingForSecondClap = true
+
 
             firstClapTime = now
 
 
+
             Logger.log(
-                "Possible clap amplitude=${features.amplitude}"
+                "First clap candidate peak=${features.peak}"
             )
+
 
 
             return ClapType.NONE
 
         }
-
-
 
 
 
@@ -115,25 +135,23 @@ class ClapDetector {
 
 
 
-        waitingForSecond = false
+        waitingForSecondClap = false
 
 
 
-        if (
-            delay <= doubleClapWindow
-        ) {
+
+
+        if (delay <= doubleWindow) {
 
 
             Logger.log(
-                "DOUBLE CLAP delay=${delay}ms"
+                "Double clap delay=${delay}ms"
             )
 
 
             return ClapType.DOUBLE_CLAP
 
-
         }
-
 
 
 
@@ -141,6 +159,8 @@ class ClapDetector {
         return ClapType.NONE
 
     }
+
+
 
 
 
@@ -150,20 +170,27 @@ class ClapDetector {
     fun checkSingleClapTimeout(): ClapType {
 
 
+
         if (
-            waitingForSecond &&
+
+            waitingForSecondClap &&
+
             System.currentTimeMillis() -
             firstClapTime >
-            doubleClapWindow
+            doubleWindow
+
         ) {
 
 
-            waitingForSecond = false
+
+            waitingForSecondClap = false
+
 
 
             Logger.log(
-                "SINGLE CLAP detected"
+                "Single clap detected"
             )
+
 
 
             return ClapType.SINGLE_CLAP
@@ -171,8 +198,10 @@ class ClapDetector {
         }
 
 
+
         return ClapType.NONE
 
     }
+
 
 }
