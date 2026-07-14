@@ -3,22 +3,6 @@ package com.clap2esp.app
 import kotlin.math.abs
 import kotlin.math.sqrt
 
-data class SignalFeatures(
-
-    val peak: Int,
-
-    val rms: Double,
-
-    val zeroCrossings: Int,
-
-    val attack: Int,
-
-    val decay: Int,
-
-    val impulseWidth: Int
-
-)
-
 class SignalAnalyzer {
 
     fun analyze(buffer: ShortArray): SignalFeatures {
