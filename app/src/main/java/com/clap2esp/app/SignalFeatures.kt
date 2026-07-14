@@ -3,7 +3,7 @@ package com.clap2esp.app
 
 data class SignalFeatures(
 
-    // Максимальная амплитуда сигнала
+    // Максимальная амплитуда
     val peak: Int,
 
 
@@ -11,25 +11,23 @@ data class SignalFeatures(
     val rms: Double,
 
 
-    // Количество переходов через ноль
+    // Переходы через ноль
     val zeroCrossings: Int,
 
 
-    // Скорость нарастания сигнала
-    // меньше = больше похоже на хлопок
-    val attack: Long,
+    // Скорость подъёма
+    val attack: Int,
 
 
     // Скорость затухания
-    val decay: Long,
+    val decay: Int,
 
 
     // Длина импульса
-    val impulseWidth: Long,
+    val impulseWidth: Int,
 
 
-    // Частотный показатель
-    // пока используется как запас под FFT
+    // Подготовка под FFT
     val highFrequencyRatio: Double = 0.0
 
 )
