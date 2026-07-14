@@ -1,33 +1,51 @@
 package com.clap2esp.app
 
-
 data class SignalFeatures(
 
-    // Максимальная амплитуда
+    /*
+     * Максимальная амплитуда
+     */
     val peak: Int,
 
-
-    // Средняя энергия сигнала
+    /*
+     * RMS (средняя энергия)
+     */
     val rms: Double,
 
+    /*
+     * Peak / RMS
+     * Один из лучших признаков хлопка.
+     */
+    val crestFactor: Double,
 
-    // Переходы через ноль
+    /*
+     * Количество переходов через ноль
+     */
     val zeroCrossings: Int,
 
-
-    // Скорость подъёма
+    /*
+     * Скорость появления импульса
+     */
     val attack: Int,
 
-
-    // Скорость затухания
+    /*
+     * Скорость затухания
+     */
     val decay: Int,
 
-
-    // Длина импульса
+    /*
+     * Реальная ширина импульса
+     */
     val impulseWidth: Int,
 
+    /*
+     * Текущий уровень фонового шума
+     */
+    val noiseFloor: Double,
 
-    // Подготовка под FFT
-    val highFrequencyRatio: Double = 0.0
+    /*
+     * Доля высоких частот
+     */
+    val highFrequencyRatio: Double
 
 )
