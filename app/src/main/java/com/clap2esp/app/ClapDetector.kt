@@ -1,107 +1,299 @@
 package com.clap2esp.app
 
+
 enum class ClapType {
     NONE,
     SINGLE_CLAP,
     DOUBLE_CLAP
 }
 
+
+
 class ClapDetector {
+
+
+    private val history = SignalHistory(12)
+
 
     private val analyzer = SignalAnalyzer()
 
-    private var waitingSecond = false
+
+
+    private var waitingSecondClap = false
 
     private var firstClapTime = 0L
 
-    private val doubleWindow = 800L
 
-    private val minGap = 120L
+    private val doubleTimeout = 700L
 
-    private var lastAccepted = 0L
+
+    private var lastDetection = 0L
+
+
+    private val cooldown = 150L
+
+
+
+
 
     fun detect(buffer: ShortArray): ClapType {
 
-        val signal = analyzer.analyze(buffer)
 
-        var score = 0
+        val signal =
+            analyzer.analyze(buffer)
 
-        // 1. Громкость
-        if (signal.peak > 10000)
-            score += 30
 
-        // 2. Средняя энергия
-        if (signal.rms < signal.peak * 0.45)
-            score += 20
 
-        // 3. Высокое количество переходов через ноль
-        if (signal.zeroCrossings > 140)
-            score += 20
+        history.add(signal)
 
-        // 4. Быстрый фронт
-        if (signal.attack < 30)
-            score += 15
 
-        // 5. Быстрое затухание
-        if (signal.decay < 40)
-            score += 15
 
-        if (score < 70)
+        // Пока мало данных — ничего не решаем
+
+        if (!history.isFull()) {
+
             return ClapType.NONE
+
+        }
+
+
+
+        val score =
+            calculateScore()
+
+
+
+        if (score < 70) {
+
+            return ClapType.NONE
+
+        }
+
+
+
+        val now =
+            System.currentTimeMillis()
+
+
+
+        if (now - lastDetection < cooldown) {
+
+            return ClapType.NONE
+
+        }
+
+
+
+        lastDetection = now
+
+
 
         Logger.log(
-            "Peak=${signal.peak}  RMS=${signal.rms.toInt()}  Score=$score"
+            "CLAP candidate score=$score peak=${signal.peak}"
         )
 
-        val now = System.currentTimeMillis()
 
-        if (now - lastAccepted < minGap)
-            return ClapType.NONE
 
-        lastAccepted = now
 
-        if (!waitingSecond) {
+        if (!waitingSecondClap) {
 
-            waitingSecond = true
+
+            waitingSecondClap = true
 
             firstClapTime = now
 
-            Logger.log("Possible clap")
 
             return ClapType.NONE
+
         }
 
-        val delay = now - firstClapTime
 
-        if (delay <= doubleWindow) {
 
-            waitingSecond = false
 
-            Logger.log("DOUBLE delay=${delay}ms")
+
+        val delay =
+            now - firstClapTime
+
+
+
+        if (delay <= doubleTimeout) {
+
+
+            waitingSecondClap = false
+
+
+            Logger.log(
+                "DOUBLE CLAP delay=${delay}ms"
+            )
+
 
             return ClapType.DOUBLE_CLAP
+
         }
+
+
 
         firstClapTime = now
 
+
+
         return ClapType.NONE
+
     }
+
+
+
+
+
+
 
     fun checkSingleClapTimeout(): ClapType {
 
+
+
         if (
-            waitingSecond &&
-            System.currentTimeMillis() - firstClapTime > doubleWindow
+            waitingSecondClap &&
+            System.currentTimeMillis()
+            -
+            firstClapTime
+            >
+            doubleTimeout
         ) {
 
-            waitingSecond = false
 
-            Logger.log("SINGLE")
+
+            waitingSecondClap = false
+
+
+
+            Logger.log(
+                "SINGLE CLAP"
+            )
+
+
 
             return ClapType.SINGLE_CLAP
+
         }
 
+
+
         return ClapType.NONE
+
+    }
+
+
+
+
+
+
+
+
+
+    private fun calculateScore(): Int {
+
+
+
+        val signals =
+            history.getAll()
+
+
+
+        var score = 0
+
+
+
+        val peaks =
+            signals.map {
+                it.peak
+            }
+
+
+
+        val averagePeak =
+            peaks.average()
+
+
+
+        val last =
+            signals.last()
+
+
+
+
+
+        // Резкий импульс
+
+        if (
+            last.peak >
+            averagePeak * 2
+        ) {
+
+            score += 30
+
+        }
+
+
+
+
+
+        // Высокая энергия
+
+        if (
+            last.peak > 12000
+        ) {
+
+            score += 20
+
+        }
+
+
+
+
+
+
+        // Быстрый спад
+
+        if (
+            last.decay < 40
+        ) {
+
+            score += 15
+
+        }
+
+
+
+
+
+        // Много переходов через ноль
+
+        if (
+            last.zeroCrossings > 150
+        ) {
+
+            score += 15
+
+        }
+
+
+
+
+
+        // Хлопок должен быть коротким
+
+        if (
+            last.attack < 30
+        ) {
+
+            score += 10
+
+        }
+
+
+
+        return score
+
     }
 
 }
