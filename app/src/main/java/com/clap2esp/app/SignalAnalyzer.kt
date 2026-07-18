@@ -112,24 +112,31 @@ class SignalAnalyzer {
                 impulseWidth
             )
 
-        return SignalFeatures(
+      return SignalFeatures(
 
-            peak = peak,
+    peak = peak,
 
-            rms = rms,
+    rms = rms,
 
-            zeroCrossings = zeroCrossings,
+    zeroCrossings = zeroCrossings,
 
-            attack = attackIndex,
+    attack = attackIndex,
 
-            decay = buffer.size - lastStrongIndex,
+    decay = buffer.size - lastStrongIndex,
 
-            impulseWidth = impulseWidth,
+    impulseWidth = impulseWidth,
 
-            highFrequencyRatio = highFrequencyRatio,
+    highFrequencyRatio = highFrequencyRatio,
 
-            clapFrequencyScore = clapFrequencyScore
-        )
+    clapFrequencyScore = clapFrequencyScore,
+
+    lowBandEnergy = lowEnergy,
+
+    midBandEnergy = midEnergy,
+
+    highBandEnergy = highEnergy
+
+)
     }
 
     private fun calculateClapScore(
