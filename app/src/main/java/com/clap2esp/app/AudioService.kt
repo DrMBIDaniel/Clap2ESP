@@ -27,6 +27,7 @@ class AudioService : Service() {
 
     private val clapDetector =
         ClapDetector()
+    private val noiseEstimator = NoiseEstimator()
 
 
     private val channelId =
@@ -180,7 +181,7 @@ class AudioService : Service() {
                         signalAnalyzer.analyze(
                             buffer
                         )
-
+noiseEstimator.update(features)
 
 
                     when(
