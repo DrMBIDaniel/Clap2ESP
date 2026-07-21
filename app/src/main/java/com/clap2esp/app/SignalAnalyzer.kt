@@ -56,6 +56,11 @@ class SignalAnalyzer {
 
         val spectrum =
             FFT.magnitude(buffer)
+        var spectralPeak = 0.0
+        var centroidNumerator = 0.0
+        var centroidDenominator = 0.0
+        var geoMean = 1.0
+        var arithMean = 0.0
 
         val sampleRate = 44100.0
 
@@ -65,28 +70,63 @@ class SignalAnalyzer {
 
         for (i in spectrum.indices) {
 
-            val freq =
-                i * sampleRate / (spectrum.size * 2)
+    val freq =
+        i * sampleRate / buffer.size
 
-            val value =
-                spectrum[i]
+    val value =
+        spectrum[i]
 
-            when {
+    if (value > spectralPeak) {
+        spectralPeak = value
+    }
 
-                freq < 500.0 -> {
-                    lowEnergy += value
-                }
+    totalSpectrumEnergy += value
 
-                freq < 2000.0 -> {
-                    midEnergy += value
-                }
+    centroidNumerator +=
+        freq * value
 
-                else -> {
-                    highEnergy += value
-                }
-            }
+    centroidDenominator +=
+        value
+
+    arithMean += value
+
+    if (value > 1e-9) {
+        geoMean *= value
+    }
+
+    when {
+
+        freq < 500 -> {
+            lowEnergy += value
         }
 
+        freq < 2000 -> {
+            midEnergy += value
+        }
+
+        else -> {
+            highEnergy += value
+        }
+    }
+        }
+
+        val spectralCentroid =
+    if (centroidDenominator > 0.0)
+        centroidNumerator / centroidDenominator
+    else
+        0.0
+
+arithMean /= spectrum.size
+
+val spectralFlatness =
+    if (arithMean > 0.0)
+        Math.pow(
+            geoMean,
+            1.0 / spectrum.size
+        ) / arithMean
+    else
+        0.0
+        
         val totalEnergy =
             lowEnergy + midEnergy + highEnergy
 
