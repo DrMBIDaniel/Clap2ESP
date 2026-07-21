@@ -17,12 +17,19 @@ class AudioService : Service() {
     private var audioRecord: AudioRecord? = null
     private var isRecording = false
 
-    private val signalAnalyzer = SignalAnalyzer()
+   private val signalAnalyzer =
+    SignalAnalyzer()
 
-    private val noiseEstimator = NoiseEstimator()
+private val noiseEstimator =
+    NoiseEstimator()
 
-    private val clapDetector = ClapDetector(
-        noiseEstimator
+private val adaptiveThreshold =
+    AdaptiveThreshold()
+
+private val clapDetector =
+    ClapDetector(
+        noiseEstimator,
+        adaptiveThreshold
     )
 
     private val channelId = "Clap2ESP_Channel"
