@@ -1,7 +1,9 @@
 package com.clap2esp.app
 
 import kotlin.math.abs
+import kotlin.math.ln
 import kotlin.math.sqrt
+import kotlin.math.exp
 
 class SignalAnalyzer {
 
@@ -21,9 +23,8 @@ class SignalAnalyzer {
             val sample = buffer[i].toInt()
             val amplitude = abs(sample)
 
-            if (amplitude > peak) {
+            if (amplitude > peak)
                 peak = amplitude
-            }
 
             sumSquares += sample * sample.toDouble()
 
@@ -56,11 +57,6 @@ class SignalAnalyzer {
 
         val spectrum =
             FFT.magnitude(buffer)
-        var spectralPeak = 0.0
-        var centroidNumerator = 0.0
-        var centroidDenominator = 0.0
-        var geoMean = 1.0
-        var arithMean = 0.0
 
         val sampleRate = 44100.0
 
@@ -68,95 +64,84 @@ class SignalAnalyzer {
         var midEnergy = 0.0
         var highEnergy = 0.0
 
+        var totalSpectrumEnergy = 0.0
+
+        var spectralPeak = 0.0
+
+        var centroidNumerator = 0.0
+        var centroidDenominator = 0.0
+
+        var logSum = 0.0
+        var arithmeticSum = 0.0
+
         for (i in spectrum.indices) {
 
-    val freq =
-        i * sampleRate / buffer.size
+            val value = spectrum[i]
 
-    val value =
-        spectrum[i]
+            val freq =
+                i * sampleRate / buffer.size
 
-    if (value > spectralPeak) {
-        spectralPeak = value
-    }
+            totalSpectrumEnergy += value
 
-    totalSpectrumEnergy += value
+            if (value > spectralPeak)
+                spectralPeak = value
 
-    centroidNumerator +=
-        freq * value
+            centroidNumerator +=
+                freq * value
 
-    centroidDenominator +=
-        value
+            centroidDenominator +=
+                value
 
-    arithMean += value
+            arithmeticSum += value
 
-    if (value > 1e-9) {
-        geoMean *= value
-    }
+            logSum +=
+                ln(value + 1e-12)
 
-    when {
+            when {
 
-        freq < 500 -> {
-            lowEnergy += value
+                freq < 500 -> {
+                    lowEnergy += value
+                }
+
+                freq < 2000 -> {
+                    midEnergy += value
+                }
+
+                else -> {
+                    highEnergy += value
+                }
+            }
         }
-
-        freq < 2000 -> {
-            midEnergy += value
-        }
-
-        else -> {
-            highEnergy += value
-        }
-    }
-        }
-
-        val spectralCentroid =
-    if (centroidDenominator > 0.0)
-        centroidNumerator / centroidDenominator
-    else
-        0.0
-
-arithMean /= spectrum.size
-
-val spectralFlatness =
-    if (arithMean > 0.0)
-        Math.pow(
-            geoMean,
-            1.0 / spectrum.size
-        ) / arithMean
-    else
-        0.0
-        
-        val totalEnergy =
-            lowEnergy + midEnergy + highEnergy
 
         val highFrequencyRatio =
-            if (totalEnergy > 0.0) {
-                highEnergy / totalEnergy
-            } else {
+            if (totalSpectrumEnergy > 0.0)
+                highEnergy / totalSpectrumEnergy
+            else
                 0.0
-            }
-
-        val spectralPeak =
-            FFT.spectralPeak(spectrum)
 
         val spectralCentroid =
-            FFT.spectralCentroid(
-                spectrum,
-                sampleRate
-            )
+            if (centroidDenominator > 0.0)
+                centroidNumerator / centroidDenominator
+            else
+                0.0
+
+        val geometricMean =
+            exp(logSum / spectrum.size)
+
+        val arithmeticMean =
+            arithmeticSum / spectrum.size
 
         val spectralFlatness =
-            FFT.spectralFlatness(
-                spectrum
-            )
+            if (arithmeticMean > 0.0)
+                geometricMean / arithmeticMean
+            else
+                0.0
 
         val impulseWidth =
-            if (lastStrongIndex > attackIndex) {
+            if (lastStrongIndex > attackIndex)
                 lastStrongIndex - attackIndex
-            } else {
+            else
                 buffer.size
-            }
 
         val clapFrequencyScore =
             calculateClapScore(
@@ -207,21 +192,17 @@ val spectralFlatness =
 
         var score = 0.0
 
-        if (peak > 8000) {
+        if (peak > 8000)
             score += 0.25
-        }
 
-        if (highFrequencyRatio > 0.18) {
+        if (highFrequencyRatio > 0.18)
             score += 0.35
-        }
 
-        if (zeroCrossings > 20) {
+        if (zeroCrossings > 20)
             score += 0.20
-        }
 
-        if (impulseWidth < 450) {
+        if (impulseWidth < 450)
             score += 0.20
-        }
 
         return score.coerceIn(0.0, 1.0)
     }
