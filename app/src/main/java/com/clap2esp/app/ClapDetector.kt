@@ -27,7 +27,7 @@ class ClapDetector(
             firstClapTime = now
 
             Logger.log(
-                "CLAP CANDIDATE peak=${features.peak}"
+                "CLAP CANDIDATE score=${calculateScore(features)}"
             )
 
             return ClapType.NONE
@@ -52,9 +52,8 @@ class ClapDetector(
 
     fun checkSingleClapTimeout(): ClapType {
 
-        if (!waitingSecondClap) {
+        if (!waitingSecondClap)
             return ClapType.NONE
-        }
 
         if (
             pendingSingle &&
@@ -72,30 +71,29 @@ class ClapDetector(
         return ClapType.NONE
     }
 
-    private fun isClap(f: SignalFeatures): Boolean {
+    private fun calculateScore(f: SignalFeatures): Int {
 
-        if (!noiseEstimator.isInitialized()) {
-            return false
-        }
+        if (!noiseEstimator.isInitialized())
+            return 0
+
+        var score = 0
 
         val rmsLimit =
-            noiseEstimator.noiseRms() * 2.2
+            noiseEstimator.noiseRms() * 2.0
 
         val peakLimit =
             noiseEstimator.noisePeak() * 2.0
 
-        val highRatioLimit =
-            noiseEstimator.noiseHighRatio() + 0.08
-
-        var score = 0
+        if (f.rms > rmsLimit)
+            score++
 
         if (f.peak > peakLimit)
             score++
 
-        if (f.rms > rmsLimit)
-            score++
-
-        if (f.highFrequencyRatio > highRatioLimit)
+        if (
+            f.highFrequencyRatio >
+            noiseEstimator.noiseHighRatio() + 0.08
+        )
             score++
 
         if (f.zeroCrossings > 20)
@@ -110,27 +108,42 @@ class ClapDetector(
         if (f.clapFrequencyScore > 0.55)
             score++
 
-        if (f.highBandEnergy > f.lowBandEnergy)
+        if (f.highBandEnergy > f.midBandEnergy)
             score++
 
-        if (f.spectralPeak > 1000.0)
+        if (f.midBandEnergy > f.lowBandEnergy)
             score++
 
-        if (f.spectralCentroid > 1500.0)
+        if (f.spectralPeak > 1000)
             score++
 
-        if (f.spectralFlatness > 0.18)
+        if (
+            f.spectralCentroid > 1800 &&
+            f.spectralCentroid < 8000
+        )
             score++
+
+        if (
+            f.spectralFlatness > 0.18 &&
+            f.spectralFlatness < 0.90
+        )
+            score++
+
+        return score
+    }
+
+    private fun isClap(f: SignalFeatures): Boolean {
+
+        val score = calculateScore(f)
 
         Logger.log(
-            "NoisePeak=${noiseEstimator.noisePeak().toInt()} " +
-            "Peak=${f.peak} " +
-            "NoiseRMS=${noiseEstimator.noiseRms().toInt()} " +
-            "RMS=${f.rms.toInt()} " +
-            "HF=${"%.2f".format(f.highFrequencyRatio)} " +
-            "Score=$score"
+            "score=$score " +
+            "peak=${f.peak} " +
+            "rms=${f.rms.toInt()} " +
+            "centroid=${f.spectralCentroid.toInt()} " +
+            "flatness=${"%.2f".format(f.spectralFlatness)}"
         )
 
-        return score >= 7
+        return score >= 8
     }
 }
