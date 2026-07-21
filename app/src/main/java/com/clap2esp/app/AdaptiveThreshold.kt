@@ -2,29 +2,25 @@ package com.clap2esp.app
 
 class AdaptiveThreshold {
 
-    private var threshold = 10.0
+    private var threshold = 5
 
-    fun currentThreshold(): Double {
-        return threshold
-    }
+    fun update(score: Int) {
 
-    fun update(success: Boolean) {
+        when {
 
-        if (success) {
-
-            threshold -= 0.05
-
-            if (threshold < 6.0) {
-                threshold = 6.0
+            score >= 8 -> {
+                threshold++
             }
 
-        } else {
-
-            threshold += 0.02
-
-            if (threshold > 12.0) {
-                threshold = 12.0
+            score <= 3 -> {
+                threshold--
             }
         }
+
+        threshold = threshold.coerceIn(4, 8)
+    }
+
+    fun currentThreshold(): Int {
+        return threshold
     }
 }
