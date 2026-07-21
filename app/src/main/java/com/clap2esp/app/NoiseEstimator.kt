@@ -2,52 +2,88 @@ package com.clap2esp.app
 
 class NoiseEstimator {
 
-    private var averageRms = 0.0
-    private var averagePeak = 0.0
-    private var averageHighRatio = 0.0
-
     private var initialized = false
+
+    private var frames = 0
+
+    private var rms = 0.0
+    private var peak = 0.0
+    private var highRatio = 0.0
+
+    private val learningFrames = 80
+
+    private val alpha = 0.03
 
     fun update(features: SignalFeatures) {
 
         if (!initialized) {
 
-            averageRms = features.rms
-            averagePeak = features.peak.toDouble()
-            averageHighRatio = features.highFrequencyRatio
+            rms += features.rms
+            peak += features.peak
+            highRatio += features.highFrequencyRatio
 
-            initialized = true
+            frames++
+
+            if (frames >= learningFrames) {
+
+                rms /= frames
+                peak /= frames
+                highRatio /= frames
+
+                initialized = true
+
+                Logger.log(
+                    "Noise profile initialized " +
+                    "RMS=${rms.toInt()} " +
+                    "Peak=${peak.toInt()}"
+                )
+            }
+
             return
         }
 
-        val alpha = 0.02
+        /*
+         * Не обучаемся на явных хлопках.
+         */
 
-        averageRms =
-            averageRms * (1.0 - alpha) +
+        if (
+            features.peak > peak * 3.0 ||
+            features.rms > rms * 3.0
+        ) {
+            return
+        }
+
+        /*
+         * Медленно адаптируемся
+         * к изменению окружающего шума.
+         */
+
+        rms =
+            rms * (1.0 - alpha) +
             features.rms * alpha
 
-        averagePeak =
-            averagePeak * (1.0 - alpha) +
+        peak =
+            peak * (1.0 - alpha) +
             features.peak * alpha
 
-        averageHighRatio =
-            averageHighRatio * (1.0 - alpha) +
+        highRatio =
+            highRatio * (1.0 - alpha) +
             features.highFrequencyRatio * alpha
-    }
-
-    fun noiseRms(): Double {
-        return averageRms
-    }
-
-    fun noisePeak(): Double {
-        return averagePeak
-    }
-
-    fun noiseHighRatio(): Double {
-        return averageHighRatio
     }
 
     fun isInitialized(): Boolean {
         return initialized
+    }
+
+    fun noiseRms(): Double {
+        return rms
+    }
+
+    fun noisePeak(): Double {
+        return peak
+    }
+
+    fun noiseHighRatio(): Double {
+        return highRatio
     }
 }
