@@ -26,10 +26,14 @@ private val noiseEstimator =
 private val adaptiveThreshold =
     AdaptiveThreshold()
 
+private val decisionSmoother =
+    DecisionSmoother()
+
 private val clapDetector =
     ClapDetector(
         noiseEstimator,
-        adaptiveThreshold
+        adaptiveThreshold,
+        decisionSmoother
     )
 
     private val channelId = "Clap2ESP_Channel"
