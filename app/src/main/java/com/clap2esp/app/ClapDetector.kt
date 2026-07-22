@@ -16,14 +16,14 @@ class ClapDetector(
 
     fun detect(features: SignalFeatures): ClapType {
 
-        val score = calculateScore(features)
+       val score = calculateScore(features)
 
-        adaptiveThreshold.update(score)
+adaptiveThreshold.update(features)
 
-        val clapDetected =
-            decisionSmoother.update(
-                score >= adaptiveThreshold.currentThreshold()
-            )
+val clapDetected =
+    decisionSmoother.accept(
+        features.peak > adaptiveThreshold.currentThreshold()
+    )
 
         if (!clapDetected) {
             return ClapType.NONE
